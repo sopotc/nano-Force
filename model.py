@@ -14,6 +14,7 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+import transformer_engine.pytorch as te
 
 class LayerNorm(nn.Module):
     """ LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False """
@@ -95,14 +96,18 @@ class Block(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
-        self.attn = CausalSelfAttention(config)
-        self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
-        self.mlp = MLP(config)
-
+        self.b = te.TransformerLayer(config.n_embd, 4*config.n_embd, config.n_head, 
+                                     attention_dropout=config.dropout, hidden_dropout=config.dropout,
+                                     normalization='RMSNorm', bias=config.bias,
+                                     seq_length=config.block_size,
+                                     fuse_qkv_params=True,
+                                     set_parallel_mode=True,
+                                     sequence_parallel=True,
+                                     tp_size=2
+                                     )
+    # 1000: val loss
     def forward(self, x):
-        x = x + self.attn(self.ln_1(x))
-        x = x + self.mlp(self.ln_2(x))
+        x = self.b(x)
         return x
 
 @dataclass
@@ -128,9 +133,9 @@ class GPT(nn.Module):
             wpe = nn.Embedding(config.block_size, config.n_embd),
             drop = nn.Dropout(config.dropout),
             h = nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
-            ln_f = LayerNorm(config.n_embd, bias=config.bias),
+            ln_f = te.LayerNorm(config.n_embd, ),
         ))
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
+        self.lm_head = te.Linear(config.n_embd, config.vocab_size, bias=False)
         # with weight tying when using torch.compile() some warnings get generated:
         # "UserWarning: functional_call was passed multiple values for tied weights.
         # This behavior is deprecated and will be an error in future versions"

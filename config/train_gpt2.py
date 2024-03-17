@@ -7,7 +7,7 @@ wandb_project = 'owt'
 wandb_run_name='gpt2-124M'
 
 
-batch_size = 18
+batch_size = 16
 block_size = 1024
 gradient_accumulation_steps = 2
 
