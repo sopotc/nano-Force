@@ -180,10 +180,6 @@ elif init_from == 'resume':
     iter_num = checkpoint['iter_num']
     best_val_loss = checkpoint['best_val_loss']
 
-# crop down the model block size if desired, using model surgery
-if block_size < model.config.block_size:
-    model.crop_block_size(block_size)
-    model_args['block_size'] = block_size # so that the checkpoint will have the right value
 model.to(device)
 
 # initialize a GradScaler. If enabled=False scaler is a no-op
