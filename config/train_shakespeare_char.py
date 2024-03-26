@@ -10,13 +10,13 @@ log_interval = 10 # don't print too too often
 always_save_checkpoint = False
 
 dataset = 'shakespeare_char'
-gradient_accumulation_steps = 2
-batch_size = 40
-block_size = 512 # context of up to 512 previous characters
+gradient_accumulation_steps = 1
+batch_size = 16
+block_size = 128 # context of up to 512 previous characters
 
-n_layer = 10
-n_head = 16
-n_embd = 512
+n_layer = 5
+n_head = 8
+n_embd = 256
 dropout = 0.15
 
 learning_rate = 1e-3 # with baby networks can afford to go a bit higher
@@ -26,7 +26,7 @@ min_lr = 1e-5 # learning_rate / 10 usually
 beta2 = 0.99 # make a bit bigger because number of tokens per iter is small
 
 warmup_iters = 100 # not super necessary potentially
-
+#grad_clip = 0.0
 weight_decay = 1e-1
 
 

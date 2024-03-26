@@ -8,7 +8,6 @@ https://github.com/huggingface/transformers/blob/main/src/transformers/models/gp
 """
 
 import math
-import inspect
 from dataclasses import dataclass
 
 import torch
@@ -182,12 +181,7 @@ class GPT(nn.Module):
         print(f"num decayed parameter tensors: {len(decay_params)}, with {num_decay_params:,} parameters")
         print(f"num non-decayed parameter tensors: {len(nodecay_params)}, with {num_nodecay_params:,} parameters")
         # Create AdamW optimizer and use the fused version if it is available
-        fused_available = 'fused' in inspect.signature(torch.optim.AdamW).parameters
-        use_fused = fused_available and device_type == 'cuda'
-        extra_args = dict(fused=True) if use_fused else dict()
-        optimizer = torch.optim.AdamW(optim_groups, lr=learning_rate, betas=betas, **extra_args)
-        print(f"using fused AdamW: {use_fused}")
-
+        optimizer = torch.optim.AdamW(optim_groups, lr=learning_rate, betas=betas, )
         return optimizer
 
     @torch.no_grad()
